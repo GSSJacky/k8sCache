@@ -1,11 +1,15 @@
 # k8sCache
 Apache Geode on k8s
 
-#requirements
+# Requirements
+Kubernets v1.9+
+Docker 18.09+
+Helm v2.14+
 
 # features
 
-# How to run
+
+# How to have a quick run in local k8s env
 1.install k8s
 2.install helm
 3.clone the k8sCache charts & examples.
