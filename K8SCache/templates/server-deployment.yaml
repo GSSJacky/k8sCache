@@ -1,0 +1,104 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: {{ template "geode.fullname" . }}-server
+  labels:
+    app: {{ template "geode.name" . }}-server
+    chart: {{ template "geode.chart" . }}
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service }}
+spec:
+  replicas: {{ .Values.config.num_servers }}
+  selector:
+    matchLabels:
+      app: {{ template "geode.name" . }}-server
+      release: {{ .Release.Name }}
+  template:
+    metadata:
+      labels:
+        app: {{ template "geode.name" . }}-server
+        release: {{ .Release.Name }}
+    spec:
+      containers:
+        - name: {{ .Chart.Name }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          command:
+          - sh
+          - -c
+          - |
+            gfsh start server --name=${HOSTNAME} --dir=/data --J=-Dgemfire.locator-wait-time=100 \
+            --locators={{ template "geode.fullname" . }}[10334] \
+            --server-port=40404 \
+            --max-heap={{ .Values.memory.max_servers }} --hostname-for-clients=$(hostname -i) \
+            --bind-address=$(hostname -i) --jmx-manager-hostname-for-clients=$(hostname -i) \
+            --J=-Dgemfire.distributed-system-id={{ .Values.wan.distributed_system_id }} \
+            --statistic-archive-file=/var/stats/server.gfs \
+            --J=-Dgemfire.log-file=/var/log/server.log \
+            {{ .Values.cacheserver.jvm_options }} \
+            {{ .Values.cacheserver.system_parameter_options }} \
+            --J=-Xss256k \
+            --J=-XX:CMSInitiatingOccupancyFraction=70 \
+            --J=-Dp2p.backlog=1280 \
+            --J=-Dp2p.HANDSHAKE_POOL_SIZE=100 \
+            --J=-Dgemfire.start-dev-rest-api=true \
+            --http-service-port=9090 \
+            --J=-Dgemfire.conserve-sockets=false \
+            --J=-Dgemfire.member-timeout=10000 \
+            --J=-XX:SurvivorRatio=1 \
+            --J=-XX:+UseParNewGC \
+            --J=-XX:+UseConcMarkSweepGC \
+            --J=-XX:+UseCMSInitiatingOccupancyOnly \
+            --J=-XX:+UnlockDiagnosticVMOptions \
+            --J=-XX:ParGCCardsPerStrideChunk=32768 \
+            --J=-XX:+CMSParallelRemarkEnabled \
+            --J=-XX:+ScavengeBeforeFullGC \
+            --J=-XX:+CMSScavengeBeforeRemark \
+            --J=-XX:+PrintGCDetails \
+            --J=-XX:+PrintGCDateStamps \
+            --J=-XX:+PrintHeapAtGC \
+            --J=-XX:+PrintClassHistogram \
+            --J=-XX:+PrintGCApplicationStoppedTime \
+            --J=-Xloggc:/var/log/gc.log && \
+            tail -f /var/log/server.log
+          ports:
+            - name: server
+              containerPort: 40404
+            - name: rest
+              containerPort: 9090
+          livenessProbe:
+            exec:
+              command:
+              - sh
+              - -c
+              - |
+                cat /data/vf.gf.server.pid | xargs ps
+            initialDelaySeconds: 60
+            periodSeconds: 5
+          #TODO: change this to hit the ping endpoint
+          readinessProbe:
+            exec:
+              command:
+              - sh
+              - -c
+              - |
+                cat /data/vf.gf.server.pid | xargs ps
+            initialDelaySeconds: 60
+            periodSeconds: 5
+          resources:
+{{ toYaml .Values.resources | indent 12 }}
+    {{- with .Values.nodeSelector }}
+      nodeSelector:
+{{ toYaml . | indent 8 }}
+    {{- end }}
+    {{- with .Values.affinity }}
+      affinity:
+{{ toYaml . | indent 8 }}
+    {{- end }}
+    {{- with .Values.tolerations }}
+      tolerations:
+{{ toYaml . | indent 8 }}
+    {{- end }}
+      volumes:
+        - name: varlog
+          emptyDir: {}

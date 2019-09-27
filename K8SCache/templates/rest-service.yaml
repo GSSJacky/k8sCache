@@ -1,0 +1,22 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ template "geode.fullname" . }}-rest
+  labels:
+    app: {{ template "geode.name" . }}-server
+    chart: {{ template "geode.chart" . }}
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service }}
+spec:
+  type: {{ .Values.service.type }}
+  ports:
+    - name: rest-traffic
+      port: 9090
+      targetPort: 9090
+      protocol: TCP
+      {{- if contains "NodePort" .Values.service.type }}
+      nodePort: {{ .Values.service.rest_nodeport }}
+      {{- end }}
+  selector:
+    app: {{ template "geode.name" . }}-server
+    release: {{ .Release.Name }}

@@ -1,0 +1,22 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ template "geode.fullname" . }}-server
+  labels:
+    app: {{ template "geode.name" . }}-server
+    chart: {{ template "geode.chart" . }}
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service }}
+spec:
+  type: {{ .Values.service.type }}
+  ports:
+    - name: server-traffic
+      port: 40404
+      targetPort: 40404
+      protocol: TCP
+      {{- if contains "NodePort" .Values.service.type }}
+      nodePort: {{ .Values.service.cacheserver_nodeport }}
+      {{- end }}
+  selector:
+    app: {{ template "geode.name" . }}-server
+    release: {{ .Release.Name }}

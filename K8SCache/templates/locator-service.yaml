@@ -1,0 +1,41 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ template "geode.fullname" . }}
+  labels:
+    app: {{ template "geode.name" . }}
+    chart: {{ template "geode.chart" . }}
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service }}
+  annotations:
+    prometheus.io/scrape: "false"
+    prometheus.io/jvm-scrape: "false"
+    prometheus.io/jvm-port: "1099"
+    prometheus.io/jvm-path: "/metrics"
+spec:
+  type: {{ .Values.service.type }}
+  ports:
+    - name: locator-traffic
+      port: 10334
+      targetPort: 10334
+      protocol: TCP
+      {{- if contains "NodePort" .Values.service.type }}
+      nodePort: {{ .Values.service.locator_nodeport }}
+      {{- end }}
+    - name: pulse-traffic
+      port: 7070
+      targetPort: 7070
+      protocol: TCP
+      {{- if contains "NodePort" .Values.service.type }}
+      nodePort: {{ .Values.service.pulse_nodeport }}
+      {{- end }}
+    - name: jmx-traffic
+      port: 1099
+      targetPort: 1099
+      protocol: TCP
+      {{- if contains "NodePort" .Values.service.type }}
+      nodePort: {{ .Values.service.jmx_nodeport }}
+      {{- end }}
+  selector:
+    app: {{ template "geode.name" . }}
+    release: {{ .Release.Name }}

@@ -1,0 +1,68 @@
+# Default values for geode.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+nameOverride: ""
+fullnameOverride: ""
+
+image:
+  repository: apachegeode/geode
+  tag: 1.9.0
+  pullPolicy: IfNotPresent
+
+service:
+  type: ClusterIP
+  port: 7070
+  pulse_nodeport: 32100
+  locator_nodeport: 32101
+  jmx_nodeport: 32102
+  cacheserver_nodeport: 32103
+  rest_nodeport: 32200
+
+config:
+  num_locators: 2
+  num_servers: 3
+
+locator:
+  jvm_options: "--J=-XX:CMSInitiatingOccupancyFraction=70"
+  system_parameter_options: "--J=-Dgemfire.member-timeout=10000 --J=-Dgemfire.enable-network-partition-detection=false"
+
+# default value for jvm parameters and system properties 
+cacheserver:
+  #tuning parameter for big jvm heap: --J=-XX:MaxPermSize=256m --J=-XX:PermSize=256m --J=-XX:NewSize=256m --J=-XX:MaxNewSize=256m
+  jvm_options: "--J=-XX:CMSInitiatingOccupancyFraction=70"
+  system_parameter_options: "--J=-Dgemfire.member-timeout=10000 --J=-Dgemfire.enable-network-partition-detection=false"
+
+wan:
+  # default value for distributed-system-id
+  distributed_system_id: 1
+  enabled: false
+  remote_locators: "geode.remote1[9009],geode.remote2[9009]"
+
+memory:
+  max_locators: 1024m
+  max_servers: 2048m
+
+ingress:
+  enabled: false
+  annotations: {}
+    # kubernetes.io/ingress.class: nginx
+    # kubernetes.io/tls-acme: "true"
+  path: /
+  hosts:
+    - geode.local
+  tls: []
+  #  - secretName: chart-example-tls
+  #    hosts:
+  #      - chart-example.local
+
+rest:
+  enabled: true
+  port: 9090
+  
+  ingress:
+    enabled: true
+    annotations: {}
+    path: /gemfire-api/v1/*
+    hosts: 
+      - geode.local
+    tls: []

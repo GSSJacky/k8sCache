@@ -1,0 +1,94 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: {{ template "geode.fullname" . }}
+  labels:
+    app: {{ template "geode.name" . }}
+    chart: {{ template "geode.chart" . }}
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service }}
+spec:
+  replicas: {{ .Values.config.num_locators }}
+  selector:
+    matchLabels:
+      app: {{ template "geode.name" . }}
+      release: {{ .Release.Name }}
+  template:
+    metadata:
+      labels:
+        app: {{ template "geode.name" . }}
+        release: {{ .Release.Name }}
+    spec:
+      containers:
+        - name: {{ .Chart.Name }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          command:
+          - sh
+          - -c
+          - |
+            gfsh -e "start locator --name=${HOSTNAME} --port=10334 --dir=/data \
+            --max-heap={{ .Values.memory.max_locators }} --hostname-for-clients=$(hostname -i) \
+            --bind-address=$(hostname -i) --jmx-manager-hostname-for-clients=$(hostname -i) \
+            --http-service-port=7070 \
+            --mcast-port=0 \
+            --locators={{ template "geode.fullname" . }}[10334] \
+            {{- if .Values.wan.enabled }}
+            --J=-Dgemfire.remote-locators={{ .Values.wan.remote_locators }} \
+            {{- end }}
+            --J=-Dgemfire.distributed-system-id={{ .Values.wan.distributed_system_id }} \
+            --J=-Dgemfire.statistic-archive-file=/var/stats/locator.gfs \
+            --J=-Dgemfire.log-file=/var/log/locator.log \
+            {{ .Values.locator.jvm_options }} \
+            {{ .Values.locator.system_parameter_options }} \
+            --J=-Xss256k \
+            --J=-XX:+UseParNewGC \
+            --J=-XX:+UseConcMarkSweepGC \
+            --J=-XX:+UseCMSInitiatingOccupancyOnly \
+            --J=-XX:+PrintGCDetails \
+            --J=-XX:+PrintGCDateStamps \
+            --J=-Xloggc:/var/log/gc.log" \
+            -e "configure pdx --read-serialized=true --disk-store=DEFAULT" && \
+            tail -f /var/log/locator.log
+          ports:
+            - name: locator
+              containerPort: 10334
+            - name: jmx
+              containerPort: 1099
+            - name: pulse
+              containerPort: 7070
+          livenessProbe:
+            exec:
+              command:
+              - sh
+              - -c
+              - |
+                cat /data/vf.gf.locator.pid | xargs ps
+            initialDelaySeconds: 60
+            periodSeconds: 5
+          readinessProbe:
+            exec:
+              command:
+              - sh
+              - -c
+              - |
+                cat /data/vf.gf.locator.pid | xargs ps
+            initialDelaySeconds: 60
+            periodSeconds: 5
+          resources:
+{{ toYaml .Values.resources | indent 12 }}
+    {{- with .Values.nodeSelector }}
+      nodeSelector:
+{{ toYaml . | indent 8 }}
+    {{- end }}
+    {{- with .Values.affinity }}
+      affinity:
+{{ toYaml . | indent 8 }}
+    {{- end }}
+    {{- with .Values.tolerations }}
+      tolerations:
+{{ toYaml . | indent 8 }}
+    {{- end }}
+      volumes:
+        - name: varlog
+          emptyDir: {}
