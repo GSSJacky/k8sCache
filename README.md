@@ -2,18 +2,99 @@
 Apache Geode on k8s
 
 # Requirements
-Kubernets v1.9+
+-Kubernets v1.9+
 
-Docker 18.09+
+-Docker 18.09+
 
-Helm v2.14+
+-Helm v2.14+
 
-# features
+# Features
+We are trying to fully implement all the features of Apache Geode under kubernetes platform.
 
+-High Read-and-Write Throughput
+
+-Low and Predictable Latency
+
+-High Scalability (HA)
+
+-Continuous Availability/Continuous Querying (Durable client/CQ)
+
+-Reliable Event Notifications (Pub/Sub)
+
+-Parallelized Application Behavior on Data Stores (Function execution service)
+
+-Shared-Nothing Disk Persistence
+
+-Client/Server Capability (Java Client/ C++ / .Net Client Supported)
+
+-Multisite Data Distribution (Wan gateway)
+
+-Rest API Capability
+
+
+# Parameters & default value when creating a geode cluster or wan gateways by helm install command:
+
+```
+#image parameters
+image.repository=apachegeode/geode
+image.tag=1.9.0
+image.pullPolicy=IfNotPresent
+
+#service parameters
+service.type=ClusterIP # service type has ClusterIP / NodePort / LoadBalancer options
+service.port=7070
+service.pulse_nodeport=32100
+service.locator_nodeport=32101
+service.jmx_nodeport=32102
+service.cacheserver_nodeport=32103
+service.rest_nodeport=32200
+
+#cluster plan parameters
+config.num_locators=2
+config.num_servers=3
+
+#locators jvm parameters and system properties
+locator.jvm_options="--J=-XX:CMSInitiatingOccupancyFraction=70"
+locator.system_parameter_options="--J=-Dgemfire.member-timeout=10000 --J=-Dgemfire.enable-network-partition-detection=false"
+
+#cacheservers jvm parameters and system properties 
+cacheserver.jvm_options="--J=-XX:CMSInitiatingOccupancyFraction=70"  # the oter examples: "--J=-XX:MaxPermSize=256m --J=-XX:PermSize=256m --J=-XX:NewSize=256m --J=-XX:MaxNewSize=256m"
+cacheserver.system_parameter_options="--J=-Dgemfire.member-timeout=10000 --J=-Dgemfire.enable-network-partition-detection=false"
+
+#wan gateway parameters
+wan.distributed_system_id=1
+wan.enabled=false
+wan.remote_locators="geode.remote1[9009],geode.remote2[9009]"
+
+#locator/cacheserver heap size definition
+memory.max_locators=1024m
+memory.max_servers=2048m
+
+#ingress parameters(this part is not full tested yet)
+ingress.enabled=false
+ingress.annotations={}
+ingress.path=/
+ingress.hosts=geode.local  #multiple values separated by "\,"
+ingress.tls=[]
+
+#cacheserver's rest api service parameters
+rest.enabled=true
+rest.port=9090
+rest.ingress.enabled=true
+rest.ingress.annotations={}
+rest.ingress.path="/gemfire-api/v1/*"
+rest.ingress.hosts=geode.local  #multiple values separated by "\,"
+rest.ingress.tls=[]
+
+```
 
 # How to have a quick run in local k8s env
 1.install k8s
+https://kubernetes.io/docs/tasks/tools/install-kubectl/
+
 2.install helm
+https://helm.sh/docs/using_helm/
+
 3.clone the k8sCache charts & examples.
 ```
 git clone https://github.com/GSSJacky/k8sCache.git
