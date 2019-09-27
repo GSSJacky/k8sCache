@@ -32,7 +32,7 @@ We are trying to fully implement all the features of Apache Geode under kubernet
 -Rest API Capability
 
 
-# Parameters & default value when creating a geode cluster or wan gateways by helm install command:
+# Parameters & default value when creating a cluster by helm command
 
 ```
 #image parameters
@@ -89,19 +89,21 @@ rest.ingress.tls=[]
 ```
 
 # How to have a quick run in local k8s env
-1.install k8s
+1.install docker in local env.
+
+2.install k8s
 https://kubernetes.io/docs/tasks/tools/install-kubectl/
 
-2.install helm
+3.install helm
 https://helm.sh/docs/using_helm/
 
-3.clone the k8sCache charts & examples.
+4.clone the k8sCache charts & examples.
 ```
 git clone https://github.com/GSSJacky/k8sCache.git
 cd k8sCache
 ```
 
-4.create a geode cluster.
+5.create a geode cluster.
 For example:
 ```
 helm install \
@@ -152,10 +154,10 @@ NOTES:
 ```
 
 
-5.confirm the cluster from pulse:
+6.confirm the cluster from pulse:
 http://localhost:32100/pulse
 
-6.confirm from gfsh console:
+7.confirm from gfsh console:
 ```
 #Get the node ip:
 echo $(kubectl get nodes --namespace default -o jsonpath="{.items[0].status.addresses[0].address}")
@@ -179,4 +181,57 @@ Member Count : 2
 ------------------------------- | ----------------------------------------------
 gemfire-cluster1-geode-server-0 | gemfire-cluster1-geode-server-0(gemfire-clus..
 gemfire-cluster1-geode-0        | gemfire-cluster1-geode-0(gemfire-cluster1-ge..
+```
+
+# How to have a quick the example spring boot client connectiong with k8sCache clusters
+1.create Pizza/Name regions by gfsh commands:
+
+```
+create region --name=Pizza --type=REPLICATE
+create region --name=Name --type=REPLICATE
+```
+
+2.build the spring boot application image, push it into docker hub.
+
+```
+cd examples/pizzastoreapp
+
+# build the application image basing on the Dockerfile
+docker build . -t jackyxu2018/pizzastore
+
+# modified the spring.data.gemfire.pool.locators which you want to connect in application.properties
+path:
+xxx/examples/pizzastoreapp/src/main/resources/application.properties
+
+# push this image into docker hub or any other docker image registery such as habor
+# to run the below command, you need to docker login at first.
+docker push jackyxu2018/pizzastore
+
+# deploy the this application into k8s cluster basing on the app.yaml (you can change the yaml file accordingly such as service spec.type)
+kubectl create -f app.yaml
+
+#confirm the pod's status
+kubectl get pods
+kubectl logs pizzastore-858f8cfcd6-ngvxq
+
+# you can get service's port info by the below command
+kubectl get svc -o wide
+
+# confirm the status of this spring boot application by ping rest api
+curl -k chttp://localhost:32321/ping
+------
+<h1>PONG!</h1>
+------
+
+# call the below rest api of spring boot application, it will put 3 pizza entries into cluster.
+curl -k http://localhost:32321/preheatOven
+------
+<h1>OVEN HEATED!</h1>
+------
+
+# you can confirm the entries by the blow URL:
+curl -k http://localhost:32321/pizzas
+---------
+[{"toppings":["CHICKEN","ARUGULA"],"name":"fancy","sauce":"ALFREDO"},{"toppings":["PARMESAN","CHICKEN","CHERRY_TOMATOES"],"name":"test","sauce":"PESTO"},{"toppings":["CHEESE"],"name":"plain","sauce":"TOMATO"}]jaxu_MBP:pizzastoreapp jaxu$ 
+---------
 ```
