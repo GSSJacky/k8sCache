@@ -183,9 +183,8 @@ gemfire-cluster1-geode-server-0 | gemfire-cluster1-geode-server-0(gemfire-clus..
 gemfire-cluster1-geode-0        | gemfire-cluster1-geode-0(gemfire-cluster1-ge..
 ```
 
-# How to have a quick the example spring boot client connectiong with k8sCache clusters
+# How to run the spring boot client example connecting with k8sCache clusters
 1.create Pizza/Name regions by gfsh commands:
-
 ```
 create region --name=Pizza --type=REPLICATE
 create region --name=Name --type=REPLICATE
