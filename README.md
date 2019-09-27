@@ -3,7 +3,9 @@ Apache Geode on k8s
 
 # Requirements
 Kubernets v1.9+
+
 Docker 18.09+
+
 Helm v2.14+
 
 # features
