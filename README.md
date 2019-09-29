@@ -2,7 +2,7 @@
 Apache Geode on k8s
 
 # Requirements
--Kubernets v1.9+
+-Kubernets v1.9+ (Tested with PKS 1.3.6+,1.4.0+)
 
 -Docker 18.09+
 
@@ -233,4 +233,90 @@ curl -k http://localhost:32321/pizzas
 ---------
 [{"toppings":["CHICKEN","ARUGULA"],"name":"fancy","sauce":"ALFREDO"},{"toppings":["PARMESAN","CHICKEN","CHERRY_TOMATOES"],"name":"test","sauce":"PESTO"},{"toppings":["CHEESE"],"name":"plain","sauce":"TOMATO"}]jaxu_MBP:pizzastoreapp jaxu$ 
 ---------
+```
+
+# How to create two cluster with Bidirectional Replication across a WAN
+1.Create Cluster1 via helm command:
+ps:
+two geode cluster required at least 2*(2*1024+3*2048)=2*8G=16G memory)
+
+```
+helm install \
+--set wan.enabled=true \
+--set wan.distributed_system_id=1 \
+--set wan.remote_locators='gemfire-cluster2-geode[10334]' \
+--set service.type=NodePort \
+--set config.num_locators=2 \
+--set config.num_servers=3 \
+--set memory.max_locators=1024m \
+--set memory.max_servers=2048m \
+--set image.tag=1.10.0 \
+./K8SCache \
+--name=gemfire-cluster1
+
+helm install \
+--set wan.enabled=true \
+--set wan.distributed_system_id=2 \
+--set wan.remote_locators='gemfire-cluster1-geode[10334]' \
+--set service.type=NodePort \
+--set config.num_locators=2 \
+--set config.num_servers=3 \
+--set memory.max_locators=1024m \
+--set memory.max_servers=2048m \
+--set image.tag=1.10.0 \
+./K8SCache \
+--name=gemfire-cluster2
+```
+
+2.Set up gateway and create regions via gfsh
+```
+#Cluster1
+gfsh>create gateway-sender --id=send_to_2 --remote-distributed-system-id=2 --enable-persistence=true
+gfsh>create region --name=regionX --gateway-sender-id=send_to_2 --type=PARTITION_REDUNDANT
+gfsh>create gateway-receiver --start-port=30000 --end-port=30001
+
+#Cluster2
+gfsh>create gateway-sender --id=send_to_1 --remote-distributed-system-id=1 --enable-persistence=true
+gfsh>create region --name=regionX --gateway-sender-id=send_to_1 --type=PARTITION_REDUNDANT
+gfsh>create gateway-receiver --start-port=30000 --end-port=30001
+```
+
+# How to scale up
+
+```
+$ kubectl get pods
+NAME                              READY   STATUS    RESTARTS   AGE
+gemfire-cluster1-geode-0          1/1     Running   0          2d
+gemfire-cluster1-geode-server-0   1/1     Running   0          2d
+pizzastore-858f8cfcd6-ngvxq       1/1     Running   0          1d
+
+$ kubectl scale statefulsets gemfire-cluster1-geode-server --replicas=2
+statefulset.apps/gemfire-cluster1-geode-server scaled
+
+$ kubectl get pods
+NAME                              READY   STATUS    RESTARTS   AGE
+gemfire-cluster1-geode-0          1/1     Running   0          2d
+gemfire-cluster1-geode-server-0   1/1     Running   0          2d
+gemfire-cluster1-geode-server-1   1/1     Running   0          2m
+pizzastore-858f8cfcd6-ngvxq       1/1     Running   0          1d
+```
+
+# How to scale down 
+There is a data loss risk on partition regions if you want to scale down,please make sure that you have enough data redundancy copy with partition regions.
+```
+$ kubectl get pods
+NAME                              READY   STATUS    RESTARTS   AGE
+gemfire-cluster1-geode-0          1/1     Running   0          2d
+gemfire-cluster1-geode-server-0   1/1     Running   0          2d
+gemfire-cluster1-geode-server-1   1/1     Running   0          3m
+pizzastore-858f8cfcd6-ngvxq       1/1     Running   0          1d
+
+$ kubectl scale statefulsets gemfire-cluster1-geode-server --replicas=1
+statefulset.apps/gemfire-cluster1-geode-server scaled
+
+$ kubectl get pods
+NAME                              READY   STATUS    RESTARTS   AGE
+gemfire-cluster1-geode-0          1/1     Running   0          2d
+gemfire-cluster1-geode-server-0   1/1     Running   0          2d
+pizzastore-858f8cfcd6-ngvxq       1/1     Running   0          1d
 ```
