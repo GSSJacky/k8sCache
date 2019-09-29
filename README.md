@@ -7,7 +7,7 @@ This readme contains:
 
 -Feature
 
--Chart's value list:
+-Chart's value list
 
 -How to create a geode cluster by k8sCache
 
