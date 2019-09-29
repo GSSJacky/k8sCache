@@ -1,5 +1,22 @@
 # k8sCache
-Apache Geode on k8s
+This repository is an helm chart implementation on Apache Geode, which can help create geode cluster/wan gateway under k8s/pks quickly with full features of apache geode.
+
+This readme contains:
+
+-Requirements
+
+-Feature
+
+-Chart's value list:
+
+-How to create a geode cluster by k8sCache
+
+-How to run the spring boot client with k8sCache cluster
+
+-How to create a wan by k8sCache
+
+-How to scale up and scale down
+
 
 # Requirements
 -Kubernets v1.9+ (Tested with PKS 1.3.6+,1.4.0+)
