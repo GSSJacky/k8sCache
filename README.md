@@ -88,7 +88,7 @@ memory.max_locators=1024m
 memory.max_servers=2048m
 
 #ingress parameters(this part is not full tested yet)
-ingress.enabled=false
+ingress.enabled=true
 ingress.annotations={}
 ingress.path=/
 ingress.hosts=geode.local  #multiple values separated by "\,"
