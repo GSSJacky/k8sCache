@@ -5,7 +5,7 @@ This readme contains:
 
 -Requirements
 
--Feature
+-Features
 
 -Chart's value list
 
