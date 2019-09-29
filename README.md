@@ -1,5 +1,5 @@
 # k8sCache
-This repository is an helm chart implementation on Apache Geode, which can help create geode cluster/wan gateway under k8s/pks quickly with full features of apache geode.
+This repository is a helm chart implementation on Apache Geode, which can help create geode cluster/wan gateway under k8s/pks quickly with full features of apache geode.
 
 This readme contains:
 
