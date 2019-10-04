@@ -1,9 +1,5 @@
 1. To monitor Geode cluster run these commands:
-{{- if .Values.ingress.enabled }}
-{{- range .Values.ingress.hosts }}
-  http{{ if $.Values.ingress.tls }}s{{ end }}://{{ . }}{{ $.Values.ingress.path }}
-{{- end }}
-{{- else if contains "NodePort" .Values.service.type }}
+{{- if contains "NodePort" .Values.service.type }}
   export NODE_IP=$(kubectl get nodes --namespace {{ .Release.Namespace }} -o jsonpath="{.items[0].status.addresses[0].address}")
   echo http://$NODE_IP:{{ .Values.service.pulse_nodeport }}/pulse
   ps:
@@ -18,5 +14,8 @@
   export POD_NAME=$(kubectl get pods --namespace {{ .Release.Namespace }} -l "app={{ template "geode.name" . }},release={{ .Release.Name }}" -o jsonpath="{.items[0].metadata.name}")
   kubectl port-forward $POD_NAME 7070:{{ .Values.service.port }}
   Then visit http://127.0.0.1:7070/pulse (login/password: admin/admin)"
-
+{{- else if .Values.ingress.enabled }}
+{{- range .Values.ingress.hosts }}
+  http{{ if $.Values.ingress.tls }}s{{ end }}://{{ . }}{{ $.Values.ingress.path }}
+{{- end }}
 {{- end }}

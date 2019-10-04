@@ -234,7 +234,7 @@ kubectl logs pizzastore-858f8cfcd6-ngvxq
 kubectl get svc -o wide
 
 # confirm the status of this spring boot application by ping rest api
-curl -k chttp://localhost:32321/ping
+curl -k http://localhost:32321/ping
 ------
 <h1>PONG!</h1>
 ------
