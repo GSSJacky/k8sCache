@@ -19,6 +19,21 @@ spec:
         ports:
         - containerPort: 8080
           name: "http"
+        env:
+        # Define the environment variable
+        - name: Geodecluster-locators
+          valueFrom:
+            configMapKeyRef:
+              # The ConfigMap containing the value you want to assign to gemfire-cluster-info
+              # {cluster_name}-configmap such as gemfire-cluster1-geode-configmap
+              name: gemfire-cluster1-geode-configmap
+              # Specify the key associated with the value
+              key: locators
+        - name: Geodeclient-log-level
+          value: "config"
+        - name: Geodeclient-log-file
+          value: "/var/log/geodeclient.log"
+
 ---
 apiVersion: v1
 kind: Service
