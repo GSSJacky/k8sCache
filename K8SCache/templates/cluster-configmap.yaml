@@ -1,0 +1,10 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ template "geode.fullname" . }}-configmap
+data:
+  locators: {{ template "geode.fullname" . }}[10334]
+  # cacheserver cache.xml template if customer wants to use cache-config.xml instead of cluster configuration service.
+  cache-config.xml: |
+    <?xml version="1.0" encoding="UTF-8"?>
+    <cache xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://geode.apache.org/schema/cache" xsi:schemaLocation="http://geode.apache.org/schema/cache http://geode.apache.org/schema/cache/cache-1.0.xsd" version="1.0" lock-lease="120" lock-timeout="60" search-timeout="300" is-server="false" copy-on-read="false"/>
