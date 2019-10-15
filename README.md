@@ -200,6 +200,28 @@ gemfire-cluster1-geode-server-0 | gemfire-cluster1-geode-server-0(gemfire-clus..
 gemfire-cluster1-geode-0        | gemfire-cluster1-geode-0(gemfire-cluster1-ge..
 ```
 
+The other quick way to run gfsh:
+```
+jaxu_MBP:k8sCache jaxu$ kubectl run -it --rm --image=apachegeode/geode:1.10.0 --restart=Never gfsh --command -- gfsh -e 'connect --locator=gemfire-cluster1-geode[10334]' -e 'list members'
+(1) Executing - connect --locator=gemfire-cluster1-geode[10334]
+
+Connecting to Locator at [host=gemfire-cluster1-geode, port=10334] ..
+Connecting to Manager at [host=10.1.1.100, port=1099] ..
+Successfully connected to: [host=10.1.1.100, port=1099]
+
+
+(2) Executing - list members
+
+Member Count : 2
+
+             Name               | Id
+------------------------------- | ----------------------------------------------
+gemfire-cluster1-geode-0        | gemfire-cluster1-geode-0(gemfire-cluster1-ge..
+gemfire-cluster1-geode-server-0 | gemfire-cluster1-geode-server-0(gemfire-clus..
+
+pod "gfsh" deleted
+```
+
 # How to run the spring boot client example connecting with k8sCache clusters
 1.create Pizza/Name regions by gfsh commands:
 ```
