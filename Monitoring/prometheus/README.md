@@ -179,3 +179,6 @@ curl -k localhost:32399/metrics
 
 5.Access prometheus service, open a metrics of geode from "Graph".
 http://localhost:31000/graph
+
+![prometheus_geode_samplescreenshot](https://github.com/GSSJacky/k8sCache/blob/master/Monitoring/prometheus/prometheus_samplescreenshot.png "prometheus_samplescreenshot")
+
