@@ -19,12 +19,17 @@ This readme contains:
 
 # k8sCache Release Notes
 - v0.0.2 
+
   Release Date: Oct 15, 2019
-  -Add prometheus monitoring feature by adding jmx exportor httpserver module. 
+
+  Add prometheus monitoring feature by adding jmx exportor httpserver module. 
 
 - v0.0.1
+  
   Release Date: Sep 29, 2019
+  
   -Add k8sCache Chart implementation
+  
   -Add Spring boot client sample application
 
 # Requirements
