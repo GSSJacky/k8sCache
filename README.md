@@ -17,7 +17,7 @@ This readme contains:
 
 -How to scale up and scale down
 
-# Releasenote
+# k8sCache Release Notes
 - v0.0.2 
   Release Date: Oct 15, 2019
   -Add prometheus monitoring feature by adding jmx exportor httpserver module. 
