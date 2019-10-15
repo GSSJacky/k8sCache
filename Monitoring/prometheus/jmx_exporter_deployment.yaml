@@ -1,0 +1,48 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: jmxexporter
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: jmxexporter
+  template:
+    metadata:
+      labels:
+        app: jmxexporter
+    spec:
+      containers:
+      - name: jmxexporter
+        image: jackyxu2018/jmxexporter
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 8080
+          name: "http"
+        env:
+        #Define the environment variable, the value is required to set the correct cluster's locator service name here which you want to monitor.
+        - name: JMX_HOST
+          value: "gemfire-cluster1-geode"
+        # The other way to pass the cluster name which you want to monitor to the jmx exporter  
+        #command: ["/opt/prometheus/runJMXExporter.sh"]
+        #args: ["gemfire-cluster1-geode"]
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: jmxexporterservice
+  annotations:
+    prometheus.io/scrape: "true"
+    prometheus.io/jvm-scrape: "true"
+    prometheus.io/jvm-port: "8080"
+    prometheus.io/jvm-path: "/metrics"
+spec:
+  selector:
+    app: jmxexporter
+  ports:
+  - name: http
+    protocol: TCP
+    port: 8080
+    nodePort: 32399
+  type: NodePort
