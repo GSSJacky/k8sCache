@@ -17,6 +17,15 @@ This readme contains:
 
 -How to scale up and scale down
 
+# Releasenote
+- v0.0.2 
+  Release Date: Oct 15, 2019
+  -Add prometheus monitoring feature by adding jmx exportor httpserver module. 
+
+- v0.0.1
+  Release Date: Sep 29, 2019
+  -Add k8sCache Chart implementation
+  -Add Spring boot client sample application
 
 # Requirements
 -Kubernets v1.9+ (Tested with PKS 1.3.6+,1.4.0+)
